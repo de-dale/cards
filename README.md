@@ -1,0 +1,1 @@
+Playground simplifié pour des cartes à jouer à créer dans l'application.
