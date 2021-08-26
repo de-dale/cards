@@ -1,33 +1,19 @@
-import React, { FormEvent, useState } from 'react'
-import {
-  Button,
-  ButtonToolbar,
-  Card,
-  Col,
-  Container,
-  DropdownButton,
-  Form,
-  ListGroup,
-  Offcanvas,
-  Row
-} from 'react-bootstrap'
+import React, { useState } from 'react'
+import { Button, Col, Container, Dropdown, DropdownButton, ListGroup, Offcanvas, Row } from 'react-bootstrap'
 import { useAppDispatch, useAppSelector } from '../../app/hooks'
 
 import {
-  addCardToLibrary,
   addDeckToLibrary,
-  importDeckFromUrlToLibrary,
-  discardAll,
-  discardByIndex,
-  draw,
   getFullDeck,
+  importDeckFromUrlToLibrary,
   PlaygroundState,
-  putBelowLibrary,
   selectPlayground,
-  shuffleLibrary,
-} from './reducer'
-import { Card as CardModel, Cards } from '../../shared/types'
-import { Dropdown } from 'react-bootstrap'
+} from '../../features/playground/reducer'
+import { Cards } from '../../shared/types'
+import { PlaygroundTools } from './PlaygroundTools'
+import { Library } from './Library'
+import { Hand } from './Hand'
+import { Graveyard } from './Graveyard'
 
 const tarotDeck = [
   {
@@ -52,6 +38,8 @@ const tarotDeck = [
   }
 ]
 
+const socialEncountersURL = 'https://raw.githubusercontent.com/de-dale/spherier/master/data/social-encounter.json'
+
 export function Playground() {
   const playground = useAppSelector(selectPlayground)
 
@@ -64,12 +52,13 @@ export function Playground() {
       <Container fluid>
         <Row>
           <Col>
-            <Tools/>
+            <PlaygroundTools/>
             <FullDeck deck={fullDeck}/>
           </Col>
           <Col md={2}>
             <DropdownButton title="Decks d'exemple">
               <Dropdown.Item onClick={() => dispatch(addDeckToLibrary(tarotDeck))}>Jeu de Tarot</Dropdown.Item>
+              <Dropdown.Item onClick={() => dispatch(importDeckFromUrlToLibrary(socialEncountersURL))}>Sphérier - Rencontres Sociales</Dropdown.Item>
             </DropdownButton>
           </Col>
         </Row>
@@ -83,114 +72,6 @@ export function Playground() {
   )
 }
 
-function Tools() {
-  const [show, setShow] = useState(false)
-
-  const handleClose = () => setShow(false)
-  const handleShow = () => setShow(true)
-
-  return (
-    <>
-      <Button variant="primary" className="me-2" onClick={handleShow}>
-        Outils
-      </Button>
-
-      <Offcanvas show={show} onHide={handleClose}>
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Outils</Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
-          <CreateCardForm close={() => handleClose()}/>
-          <ImportDeckForm close={() => handleClose()}/>
-        </Offcanvas.Body>
-      </Offcanvas>
-    </>
-  )
-}
-
-type CardFormProps = {
-  close: Function
-}
-
-function CreateCardForm({ close }: CardFormProps) {
-  const [validated, setValidated] = useState(false)
-  const [end, setEnd] = useState(false)
-  const dispatch = useAppDispatch()
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    const form = event.currentTarget
-    event.preventDefault()
-    if (!form.checkValidity()) {
-      event.stopPropagation()
-    } else {
-      dispatch(addCardToLibrary({
-        name: form['cardName'].value,
-        content: form['cardContent'].value,
-      }))
-      end && close()
-    }
-    setEnd(false)
-    setValidated(true)
-  }
-
-  return (
-    <Form noValidate validated={validated} onSubmit={(e) => handleSubmit(e)} className="mt-3">
-      <Form.Label>Créer une carte</Form.Label>
-      <Form.Control
-        id="cardName"
-        required
-        type="text"
-        placeholder="Nom de la carte"/>
-      <Form.Control.Feedback type="invalid">Une carte doit avoir un nom</Form.Control.Feedback>
-      <Form.Control as="textarea" rows={3} className="mt-1"
-                    id="cardContent"
-                    required
-                    style={{ height: '100px' }}
-                    placeholder="Effets de la carte"/>
-      <Form.Control.Feedback type="invalid">Une carte doit avoir des effets</Form.Control.Feedback>
-      <Button type="submit" className="mt-3 me-2">Créer</Button>
-      <Button type="submit" className="mt-3" onClick={() => setEnd(true)}>Créer et fermer</Button>
-    </Form>
-  )
-}
-
-type ImportDeckFormProps = {
-  close: Function
-}
-
-function ImportDeckForm({ close }: ImportDeckFormProps) {
-  const [validated, setValidated] = useState(false)
-  const [end, setEnd] = useState(false)
-  const dispatch = useAppDispatch()
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    const form = event.currentTarget
-    event.preventDefault()
-    if (!form.checkValidity()) {
-      event.stopPropagation()
-    } else {
-      const deckUrl = form['deckUrl'].value
-      dispatch(importDeckFromUrlToLibrary(deckUrl))
-      end && close()
-    }
-    setEnd(false)
-    setValidated(true)
-  }
-
-  return (
-    <Form noValidate validated={validated} onSubmit={(e) => handleSubmit(e)} className="mt-3">
-      <Form.Label>Importer un deck existant</Form.Label>
-      <Form.Control
-        id="deckUrl"
-        required
-        type="text"
-        placeholder="URL vers le deck à charger"/>
-      <Form.Control.Feedback type="invalid">Une carte doit avoir un nom</Form.Control.Feedback>
-      <Button type="submit" className="mt-3 me-2">Importer</Button>
-      <Button type="submit" className="mt-3" onClick={() => setEnd(true)}>Importer et fermer</Button>
-    </Form>
-  )
-}
 
 type DeckProps = {
   deck: Cards,
@@ -236,13 +117,13 @@ function InnerPlayground({ playground }: InnerPlaygroundProps) {
     <>
       <Row>
         <Col md={3}>
-          <LibraryComponent library={playground.library}/>
+          <Library library={playground.library}/>
         </Col>
         <Col md={6}>
-          <HandComponent hand={playground.hand}/>
+          <Hand hand={playground.hand}/>
         </Col>
         <Col md={3}>
-          <GraveyardComponent graveyard={playground.graveyard}/>
+          <Graveyard graveyard={playground.graveyard}/>
         </Col>
       </Row>
     </>
@@ -250,140 +131,8 @@ function InnerPlayground({ playground }: InnerPlaygroundProps) {
 
 }
 
-type LibraryProps = {
-  library: Cards,
-}
-
-function LibraryComponent({ library }: LibraryProps) {
-  const dispatch = useAppDispatch()
-  return (
-    <>
-      <h2>Pioche : {library.length}</h2>
-      <ButtonToolbar>
-        <Button size="sm" className="me-2"
-                onClick={() => dispatch(draw())}
-                aria-label="Pioche">
-          Pioche
-        </Button>
-        <Button size="sm" variant="primary"
-                onClick={() => dispatch(shuffleLibrary())}
-                aria-label="Mélanger">
-          Mélanger
-        </Button>
-      </ButtonToolbar>
-      <Row xs={1} md={1} className="g-4">
-        {library.map((card, index) =>
-          <CardComponent key={index}
-                         card={card}
-                         hidden
-                         revealable/>
-        )}
-      </Row>
-    </>)
-}
 
 
-type HandProps = {
-  hand: Cards,
-}
 
-function HandComponent({ hand }: HandProps) {
-  const dispatch = useAppDispatch()
-  return (
-    <>
-      <h2>La Main : {hand.length}</h2>
-      <ButtonToolbar>
-        <Button size="sm" variant="primary"
-                onClick={() => dispatch(discardAll())}
-                aria-label="Défausser la main">
-          Défausser la main
-        </Button>
-      </ButtonToolbar>
-      <Row xs={1} md={3} className="g-4">
-        {hand.map((card, index) =>
-          <CardComponent key={index} card={card} actions={[
-            {
-              label: 'Défausser',
-              action: () => dispatch(discardByIndex(index))
-            }
-          ]}/>
-        )}
-      </Row>
-    </>)
-}
 
-type GraveyardProps = {
-  graveyard: Cards,
-}
 
-function GraveyardComponent({ graveyard }: GraveyardProps) {
-  const dispatch = useAppDispatch()
-  return (
-    <>
-      <h2>La Défausse : {graveyard.length}</h2>
-      <ButtonToolbar>
-        <Button size="sm"
-                onClick={() => dispatch(putBelowLibrary())}
-                aria-label="Remettre sous la pioche">
-          Remettre sous la pioche
-        </Button>
-      </ButtonToolbar>
-      <Row xs={1} md={1} className="g-4">
-        {graveyard.map((card, index) =>
-          <CardComponent key={index} card={card}/>
-        )}
-      </Row>
-    </>)
-}
-
-type CardAction = {
-  label: string,
-  action: Function,
-}
-
-type CardProps = {
-  card: CardModel,
-  actions?: Array<CardAction>,
-  hidden?: boolean,
-  revealable?: boolean
-}
-
-function CardComponent({ card, actions = [], hidden = false, revealable = false }: CardProps) {
-  const [show, setShow] = useState(!hidden)
-  return (
-    <>
-      <Col>
-        {!show && <Card style={{ width: '18rem', height: '12rem' }}>
-          <Card.Header as="h5"> *** </Card.Header>
-          <Card.Body> *** </Card.Body>
-          <Card.Footer>
-            {revealable && <Button size="sm" variant="secondary"
-                                   onClick={() => setShow(!show)}
-                                   aria-label="Révéler">
-              Révéler
-            </Button>}
-          </Card.Footer>
-        </Card>}
-        {show && <Card style={{ width: '18rem', height: '12rem' }}>
-          <Card.Header as="h5">{card.name}</Card.Header>
-          <Card.Body style={{ overflow: 'auto' }}>
-            <Card.Text>{card.content}</Card.Text>
-          </Card.Body>
-          {(0 < actions.length || revealable) && <Card.Footer>
-            {actions.map((action, index) =>
-              <Button size="sm" key={index}
-                      onClick={() => action.action()}
-                      aria-label={action.label}>
-                {action.label}
-              </Button>
-            )}
-            {revealable && <Button size="sm" variant="secondary"
-                                   onClick={() => setShow(!show)}
-                                   aria-label="Masquer">
-              Masquer
-            </Button>}
-          </Card.Footer>}
-        </Card>}
-      </Col>
-    </>)
-}
