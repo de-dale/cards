@@ -14,20 +14,6 @@ export interface PlaygroundState {
   status: 'idle' | 'loading' | 'failed';
 }
 
-const mockedDeck = [{
-  name: 'S\'enquiérir',
-  content: 'Permet de s\'intéresser à son interlocuteur'
-},
-  {
-    name: 'Rassurer',
-    content: 'Permet de rassurer l\'interlocuteur'
-  },
-  {
-    name: 'Complimenter',
-    content: 'Si votre ramage ressemble à votre plumage'
-  }
-]
-
 const initialState: PlaygroundState = {
   library: [] as Cards,
   hand: [] as Cards,
@@ -39,16 +25,11 @@ const initialState: PlaygroundState = {
   status: 'idle',
 }
 
-// The function below is called a thunk and allows us to perform async logic. It
-// can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
-// will call the thunk with the `dispatch` function as the first argument. Async
-// code can then be executed and other actions can be dispatched. Thunks are
-// typically used to make async requests.
-export const loadLibrary = createAsyncThunk(
+export const importDeckFromUrlToLibrary = createAsyncThunk(
   'playground/loadLibrary',
-  async (arg, thunkAPI) => {
-    const response = await fetchDeck(mockedDeck)
-    thunkAPI.dispatch(addDeckToLibrary(response.data))
+  async (deckUrl: string, thunkAPI) => {
+    const deck : Cards = await fetchDeck(deckUrl)
+    thunkAPI.dispatch(addDeckToLibrary(deck))
   }
 )
 
@@ -96,10 +77,10 @@ export const playgroundSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loadLibrary.pending, (playground) => {
+      .addCase(importDeckFromUrlToLibrary.pending, (playground) => {
         playground.status = 'loading'
       })
-      .addCase(loadLibrary.fulfilled, (playground, action) => {
+      .addCase(importDeckFromUrlToLibrary.fulfilled, (playground, action) => {
         playground.status = 'idle'
       })
   },

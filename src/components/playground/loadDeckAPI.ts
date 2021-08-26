@@ -1,8 +1,13 @@
-import { Cards } from '../../shared/types'
+import { Card, Cards } from '../../shared/types'
 
-// A mock function to mimic making an async request for data
-export function fetchDeck(cards: Cards) {
-  return new Promise<{ data: Cards }>((resolve) =>
-    setTimeout(() => resolve({ data: cards }), 500)
-  )
+export function fetchDeck(deckUrl: string): Promise<Cards> {
+  return fetch(deckUrl)
+    .then(response => {
+        if (!response.ok) {
+          throw new Error(response.statusText)
+        }
+        return response.json()
+      }
+    )
+    .then(data => [...data].map(({ name, content }) => ({ name, content }) as Card))
 }
