@@ -28,7 +28,7 @@ const initialState: PlaygroundState = {
 export const importDeckFromUrlToLibrary = createAsyncThunk(
   'playground/loadLibrary',
   async (deckUrl: string, thunkAPI) => {
-    const deck : Cards = await fetchDeck(deckUrl)
+    const deck: Cards = await fetchDeck(deckUrl)
     thunkAPI.dispatch(addDeckToLibrary(deck))
   }
 )
@@ -43,7 +43,6 @@ const shuffleArray = (array: Array<any>) => {
 export const playgroundSlice = createSlice({
   name: 'playground',
   initialState,
-  // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     draw: (playground: Draft<PlaygroundState>) => {
       if (playground.library.length === 0) {
@@ -51,7 +50,7 @@ export const playgroundSlice = createSlice({
       }
       const [cardToDraw, ...remainingLibrary] = playground.library
       playground.hand.push(cardToDraw)
-      playground.library = remainingLibrary
+      playground.library = [...remainingLibrary]
     },
     addDeckToLibrary: (playground: Draft<PlaygroundState>, action: PayloadAction<Cards>) => {
       playground.library = playground.library.concat(action.payload)
@@ -87,12 +86,12 @@ export const playgroundSlice = createSlice({
 })
 
 export const getFullDeck = (playground: PlaygroundState) => playground.library
-    .concat(playground.hand)
-    .concat(playground.battlefield)
-    .concat(playground.graveyard)
-    .concat(playground.stack)
-    .concat(playground.exile)
-    .concat(playground.command)
+  .concat(playground.hand)
+  .concat(playground.battlefield)
+  .concat(playground.graveyard)
+  .concat(playground.stack)
+  .concat(playground.exile)
+  .concat(playground.command)
 
 export const {
   addCardToLibrary,

@@ -1,6 +1,6 @@
 import { Cards } from '../../shared/types'
 import { useAppDispatch } from '../../app/hooks'
-import { Button, ButtonToolbar, Row } from 'react-bootstrap'
+import { Button, ButtonToolbar, Col, Row } from 'react-bootstrap'
 import { draw, shuffleLibrary } from '../../features/playground/reducer'
 import { CardComponent } from '../cards/CardComponent'
 import React from 'react'
@@ -28,10 +28,12 @@ export function Library({ library }: LibraryProps) {
       </ButtonToolbar>
       <Row xs={1} md={1} className="g-4">
         {library.map((card, index) =>
-          <CardComponent key={index}
-                         card={card}
-                         hidden
-                         revealable/>
+          <Col>
+            <CardComponent key={index}
+                           card={card}
+                           hidden
+                           revealable/>
+          </Col>
         )}
       </Row>
     </>)
